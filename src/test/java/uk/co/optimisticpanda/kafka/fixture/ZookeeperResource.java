@@ -1,8 +1,9 @@
 package uk.co.optimisticpanda.kafka.fixture;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
@@ -11,13 +12,20 @@ import org.junit.rules.ExternalResource;
 
 public class ZookeeperResource extends ExternalResource {
 
+	public final Supplier<File> logFolder;
+
+	public ZookeeperResource(Supplier<File> logFolder) {
+		this.logFolder = logFolder;
+	}
+
 	@Override
 	protected void before() throws Throwable {
 
 		Properties properties = new Properties();
-		properties.load(new FileInputStream(
-						"/home/alee/bin/kafka_2.11-0.10.0.0/config/zookeeper.properties"));
-
+		properties.put("clientPort", 2181);
+		properties.put("maxClientCnxns", 0);
+		properties.put("dataDir", logFolder.get().getAbsolutePath());
+		
 		QuorumPeerConfig quorumConfiguration = new QuorumPeerConfig();
 		try {
 			quorumConfiguration.parseProperties(properties);
