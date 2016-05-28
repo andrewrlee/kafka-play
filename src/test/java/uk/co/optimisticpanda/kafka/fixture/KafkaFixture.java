@@ -10,11 +10,29 @@ import org.junit.runners.model.Statement;
 
 public class KafkaFixture implements TestRule {
 
+	private ZookeeperResource zookeeperResource;
+	private TemporaryFolder temporaryFolder;
+	private KafkaResource kafkaResource;
+
+	public KafkaFixture() {
+		temporaryFolder = new TemporaryFolder();
+		zookeeperResource = new ZookeeperResource(
+				3818, 
+				wrapAnyError(() -> temporaryFolder.newFolder("zookeeper")));
+		kafkaResource = new KafkaResource(
+				9092,
+				zookeeperResource::getZookeeperConnect, 
+				wrapAnyError(() -> temporaryFolder.newFolder("kafka")));
+	}
+	
+	public String getKafkaConnect() {
+		return kafkaResource.getKafkaConnect();
+	}
+	
 	public Statement apply(Statement base, Description description) {
-		TemporaryFolder temporaryFolder = new TemporaryFolder();
 		return RuleChain.outerRule(temporaryFolder)
-				.around(new ZookeeperResource(wrapAnyError(() -> temporaryFolder.newFolder("zookeeper"))))
-				.around(new KafkaResource(wrapAnyError(() -> temporaryFolder.newFolder("kafka"))))
+				.around(zookeeperResource)
+				.around(kafkaResource)
 				.apply(base, description);
 	}
 

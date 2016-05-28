@@ -23,10 +23,10 @@ public class SimpleConsumerTest {
 
 	@Test
 	public void testSomething() throws Exception {
-		Producer producer = new Producer("topic-1");
+		Producer producer = new Producer(fixture.getKafkaConnect(), "topic-1");
 
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
+		props.put("bootstrap.servers", fixture.getKafkaConnect());
 	    props.put("group.id", "test");
 	    props.put("enable.auto.commit", "true");
 	    props.put("auto.commit.interval.ms", "1000");

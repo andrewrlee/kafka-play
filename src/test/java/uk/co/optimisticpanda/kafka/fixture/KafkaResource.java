@@ -12,31 +12,34 @@ import org.junit.rules.ExternalResource;
 class KafkaResource extends ExternalResource {
 
 	private final Supplier<File> logFolder;
+	private final Supplier<String> zookeeperConnect;
+	private final int listenPort;
 	public KafkaServerStartable kafka;
 
-	public KafkaResource(Supplier<File> logFolder) {
+	public KafkaResource(int listenPort, Supplier<String> zookeeperConnect, Supplier<File> logFolder) {
+		this.listenPort = listenPort;
+		this.zookeeperConnect = zookeeperConnect;
 		this.logFolder = logFolder;
 	}
 
 	@Override
 	protected void before() throws Throwable {
 		Properties properties = new Properties();
-		properties.put("num.io.threads", "8");
 		properties.put("log.dirs", logFolder.get().getAbsolutePath());
-		properties.put("advertised.host.name", "localhost");
-		properties.put("zookeeper.connect", "localhost:2181");
-		properties.put("broker.id", "0");
-		properties.put("zookeeper.connection.timeout.ms", "6000");
+		properties.put("zookeeper.connect", zookeeperConnect.get());
+		properties.put("listeners", "PLAINTEXT://0.0.0.0:" + listenPort);
 
 		KafkaConfig kafkaConfig = new KafkaConfig(properties);
 		kafka = new KafkaServerStartable(kafkaConfig);
 		kafka.startup();
 	}
 
+	public String getKafkaConnect() {
+		return "localhost:" + listenPort;
+	}
+	
 	@Override
 	protected void after() {
-		// stop kafka broker
-		System.out.println("stopping kafka...");
 		kafka.shutdown();
 	};
 

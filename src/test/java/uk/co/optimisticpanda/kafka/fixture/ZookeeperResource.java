@@ -1,7 +1,8 @@
 package uk.co.optimisticpanda.kafka.fixture;
 
+import static uk.co.optimisticpanda.kafka.Utils.ThrowingRunnable.wrapAnyError;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -13,39 +14,33 @@ import org.junit.rules.ExternalResource;
 public class ZookeeperResource extends ExternalResource {
 
 	public final Supplier<File> logFolder;
+	private int port;
 
-	public ZookeeperResource(Supplier<File> logFolder) {
+	public ZookeeperResource(int port, Supplier<File> logFolder) {
 		this.logFolder = logFolder;
+		this.port = port;
 	}
 
 	@Override
 	protected void before() throws Throwable {
-
+		new Thread(this::run).start();
+	}
+	
+	public void run() {
 		Properties properties = new Properties();
-		properties.put("clientPort", 2181);
-		properties.put("maxClientCnxns", 0);
+		properties.put("clientPort", port);
 		properties.put("dataDir", logFolder.get().getAbsolutePath());
-		
+
 		QuorumPeerConfig quorumConfiguration = new QuorumPeerConfig();
-		try {
-			quorumConfiguration.parseProperties(properties);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		wrapAnyError(() -> quorumConfiguration.parseProperties(properties));
 
-		final ZooKeeperServerMain zooKeeperServer = new ZooKeeperServerMain();
-		final ServerConfig configuration = new ServerConfig();
+		ZooKeeperServerMain zooKeeperServer = new ZooKeeperServerMain();
+		ServerConfig configuration = new ServerConfig();
 		configuration.readFrom(quorumConfiguration);
-
-		new Thread() {
-			public void run() {
-				try {
-					zooKeeperServer.runFromConfig(configuration);
-				} catch (IOException e) {
-					System.out.println("ZooKeeper Failed");
-					e.printStackTrace(System.err);
-				}
-			}
-		}.start();
+		wrapAnyError(() -> zooKeeperServer.runFromConfig(configuration));
+	}
+	
+	public String getZookeeperConnect() {
+		return "localhost:" + port;
 	}
 }

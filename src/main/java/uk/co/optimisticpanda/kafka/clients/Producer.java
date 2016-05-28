@@ -16,10 +16,10 @@ public class Producer {
 	private final String topic;
 	private final Random rnd = new Random();
 
-	public Producer(String topic) throws FileNotFoundException, IOException {
+	public Producer(String bootstrapServers, String topic) throws FileNotFoundException, IOException {
 		
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
+		props.put("bootstrap.servers", bootstrapServers);
 		 
 		this.producer = new KafkaProducer<>(props, new StringSerializer(), new StringSerializer());
 		this.topic = topic;
