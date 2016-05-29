@@ -64,8 +64,8 @@ public class UtilsTest {
 		assertThatThrownBy(() -> 
 			ThrowingRunnable.propagateAnyError(() -> { 
 				throw new IOException("error");
-			})))
-		).hasCause(IOException.class));
+			})
+		).hasCauseExactlyInstanceOf(IOException.class);
 	}
 
 	@Test
