@@ -7,6 +7,8 @@
 
 	<properties>
 		<kafka.version>0.10.0.0</kafka.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
 	</properties>
 
 	<dependencies>
@@ -47,7 +49,6 @@
 			<version>3.0.0</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -60,6 +61,32 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>4.1.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.5.201505241946</version>
+				<configuration>
+					<excludes>
+						<exclude>uk/co/optimisticpanda/jnomon/Main*</exclude>
+						<exclude>uk/co/optimisticpanda/jnomon/LineEventImpl*</exclude>
+						<exclude>uk/co/optimisticpanda/jnomon/TickEventImpl*</exclude>
+						<exclude>uk/co/optimisticpanda/jnomon/formatter/EventListener*</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
