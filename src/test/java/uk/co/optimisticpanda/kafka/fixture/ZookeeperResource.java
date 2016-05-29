@@ -1,6 +1,6 @@
 package uk.co.optimisticpanda.kafka.fixture;
 
-import static uk.co.optimisticpanda.kafka.Utils.ThrowingRunnable.wrapAnyError;
+import static uk.co.optimisticpanda.kafka.Utils.ThrowingRunnable.propagateAnyError;
 
 import java.io.File;
 import java.util.Properties;
@@ -14,7 +14,7 @@ import org.junit.rules.ExternalResource;
 public class ZookeeperResource extends ExternalResource {
 
 	public final Supplier<File> logFolder;
-	private int port;
+	private final int port;
 
 	public ZookeeperResource(int port, Supplier<File> logFolder) {
 		this.logFolder = logFolder;
@@ -32,12 +32,12 @@ public class ZookeeperResource extends ExternalResource {
 		properties.put("dataDir", logFolder.get().getAbsolutePath());
 
 		QuorumPeerConfig quorumConfiguration = new QuorumPeerConfig();
-		wrapAnyError(() -> quorumConfiguration.parseProperties(properties));
+		propagateAnyError(() -> quorumConfiguration.parseProperties(properties));
 
 		ZooKeeperServerMain zooKeeperServer = new ZooKeeperServerMain();
 		ServerConfig configuration = new ServerConfig();
 		configuration.readFrom(quorumConfiguration);
-		wrapAnyError(() -> zooKeeperServer.runFromConfig(configuration));
+		propagateAnyError(() -> zooKeeperServer.runFromConfig(configuration));
 	}
 	
 	public String getZookeeperConnect() {

@@ -19,7 +19,7 @@ import uk.co.optimisticpanda.kafka.fixture.KafkaFixture;
 public class SimpleConsumerTest {
 
 	@Rule
-	public KafkaFixture fixture = new KafkaFixture();
+	public KafkaFixture fixture = KafkaFixture.create();
 
 	@Test
 	public void testSomething() throws Exception {
