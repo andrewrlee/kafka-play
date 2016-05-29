@@ -1,5 +1,7 @@
 package uk.co.optimisticpanda.kafka;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
@@ -20,17 +22,19 @@ public class SimpleConsumerTest {
 		
 		try (SimpleConsumer consumer = new SimpleConsumer(fixture.getKafkaConnect(), "topic-1")) {
 			
-			consumer.startListening(message -> { });
+			AtomicInteger count = new AtomicInteger();
+			
+			consumer.startListening(message -> count.incrementAndGet());
 			
 			producer.sendMessage();
 			producer.sendMessage();
 			producer.sendMessage();
 
-			AtomicInteger count = new AtomicInteger();
-			
 			while(count.get() < 3) {
 				consumer.poll(message -> count.incrementAndGet());
 			}
+			
+			assertThat(count.get()).isEqualTo(3);
 		}
 	}
 }
