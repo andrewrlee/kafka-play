@@ -1,23 +1,24 @@
 package uk.co.optimisticpanda.kafka.clients;
 
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 
 import java.io.Closeable;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MultiThreadedConsumer implements Closeable {
-
+	private static final Logger L = LoggerFactory.getLogger(MultiThreadedConsumer.class);
 	private final String topic;
 	private final String bootstrapServers;
 	private ExecutorService executor;
@@ -32,7 +33,7 @@ public class MultiThreadedConsumer implements Closeable {
 
 		Properties properties = new Properties();
 		properties.put("bootstrap.servers", bootstrapServers);
-	    properties.put("group.id", "test");
+	    properties.put("group.id", "group-1");
 	    properties.put("enable.auto.commit", "true");
 	    properties.put("auto.commit.interval.ms", "1000");
 	    properties.put("session.timeout.ms", "30000");
@@ -47,11 +48,11 @@ public class MultiThreadedConsumer implements Closeable {
 			executor.shutdown();
 		}
 		try {
-			if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
-				System.out.println("Timed out waiting for consumer threads to shut down, exiting uncleanly");
+			if (!executor.awaitTermination(5000, MILLISECONDS)) {
+				L.warn("Timed out waiting for consumer threads to shut down, exiting uncleanly");
 			}
 		} catch (InterruptedException e) {
-			System.out.println("Interrupted during shutdown, exiting uncleanly");
+			L.warn("Interrupted during shutdown, exiting uncleanly");
 		}
 	}
 
@@ -74,16 +75,18 @@ public class MultiThreadedConsumer implements Closeable {
 					consume();
 				}
 			} catch (WakeupException e) {
+				L.info("Woken up");
 				if (!closed.get())
 					throw e;
 			} finally {
+				L.info("Closing consumer");
 				kafkaConsumer.close();
 			}
 		}
 
 		private void consume() {
-			ConsumerRecords<String, String> records = kafkaConsumer.poll(1000);
-			records.forEach(row -> consumer.accept(row.value()));
+			kafkaConsumer.poll(1000)
+				.forEach(row -> consumer.accept(row.value()));
 		}
 
 		public void shutdown() {
