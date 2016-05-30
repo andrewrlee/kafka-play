@@ -4,7 +4,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
@@ -12,7 +11,6 @@ import org.junit.Test;
 
 import uk.co.optimisticpanda.kafka.clients.MultiThreadedConsumer;
 import uk.co.optimisticpanda.kafka.clients.Producer;
-import uk.co.optimisticpanda.kafka.clients.SimpleConsumer;
 import uk.co.optimisticpanda.kafka.fixture.KafkaFixture;
 
 public class MultiThreadedConsumerTest {
